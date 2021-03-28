@@ -3,7 +3,9 @@
         "token": "",
         "apiKey": "",
         "prefix": "-",
-        "ownerId": ""
+        "ownerId": "",
+        "logChannel": "",
+        "mainServer": ""
     },
     "requirements": {
         "roles": {

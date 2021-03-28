@@ -1,25 +1,20 @@
 const Discord = require('discord.js');
-const config = require('../../config.json')
 const statuses = ["PLAYING", "LISTENING", "WATCHING", "COMPETING"];
 
 module.exports = {
     name: 'status',
     aliases: ['presence', 'setstatus'],
-    description: 'Sets bot statys',
+    usage: 'status <statusType> <statusMessage>',
+    description: 'Sets bot status',
+    ownerOnly: true,
     execute(message, args) {
-        if (!isOwner(message.author.id)) return message.channel.send(
-            new Discord.MessageEmbed()
-                .setDescription(`Sorry, you don't have permission to do this`)
-                .setColor('DC143C')
-        );
-
         if (!args.length) {
             return message.client.user.setActivity()
-            .then(message.channel.send(
-                new Discord.MessageEmbed()
-                .setDescription(`Status removed!`)
-                .setColor('7CFC00')
-            ))
+                .then(message.channel.send(
+                    new Discord.MessageEmbed()
+                        .setDescription(`Status removed!`)
+                        .setColor('7CFC00')
+                ))
         }
 
         const status = args[0].toUpperCase();
@@ -39,19 +34,32 @@ module.exports = {
 
         args.shift();
 
-        message.client.user.setActivity(args.join(' '), { type: status })
-        .then(message.channel.send(
-            new Discord.MessageEmbed()
-            .setDescription(`Status successfully set to \`${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() + ' ' + args.join(' ')}\``)
-            .setColor('7CFC00')
-        ))
+        return message.client.user.setActivity(args.join(' '), { type: status })
+            .then(message.channel.send(
+                new Discord.MessageEmbed()
+                    .setDescription(`Status successfully set to \`${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() + ' ' + args.join(' ')}\``)
+                    .setColor('7CFC00')
+            )).then(
+                discordLog(message.client,
+                    new Discord.MessageEmbed()
+                        .setAuthor(message.client.user.username, message.client.user.avatarURL())
+                        .setDescription(`Status changed to \`${status.charAt(0).toUpperCase() + status.slice(1).toLowerCase() + ' ' + args.join(' ')}\``)
+                        .setColor('7CFC00')
+                        .setTimestamp()
+                )
+            )
     },
 };
 
-function isOwner(member) {
-    return member == config.discord.ownerId;
-}
-
 function isValidStatus(status) {
     return statuses.includes(status);
+}
+
+function discordLog(client, embed) {
+    delete require.cache[require.resolve('../../config.json')];
+    const config = require('../../config.json');
+
+    client.channels.fetch(config.discord.logChannel)
+        .then(channel => channel.send(embed))
+        .catch(console.error)
 }
