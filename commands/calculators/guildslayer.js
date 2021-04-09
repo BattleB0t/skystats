@@ -2,16 +2,13 @@ const Discord = require('discord.js');
 const fetch = require('node-fetch')
 const fs = require('fs')
 
-const lv60 = 111672425;
-const lv50 = 55172425;
-
 const loading = `819138970771652609`;
 
 module.exports = {
-    name: 'guildskills',
-    aliases: ['gsk', 'guildsk'],
-    usage: 'guildskills <guild>',
-    description: 'Scans a guild, checking all members total skill experience using the maniacs method',
+    name: 'guildslayer',
+    aliases: ['gsl', 'guildsl'],
+    usage: 'guildslayer <guild>',
+    description: 'Scans a guild, checking all members total slayer experience',
     modOnly: true,
     maniacsOnly: true,
     async execute(message, args) {
@@ -95,7 +92,7 @@ module.exports = {
                 }
                 else if (skyblockData.status == '200') {
                     try {
-                        users.push({ uuid: memberUUIDs[0], exp: calcSkills(skyblockData), username: skyblockData.data.username, profile: skyblockData.data.name}); //UUID,Skill Exp,Username,Profile
+                        users.push({ uuid: memberUUIDs[0], exp: calcSlayer(skyblockData), username: skyblockData.data.username, profile: skyblockData.data.name}); //UUID,Skill Exp,Username,Profile
                         memberUUIDs.shift();
                     } catch {
                         console.log(`Error with UUID ${memberUUIDs[0]}`);
@@ -193,7 +190,7 @@ function formatTime(time) {
 
 function ConvertToCSV(objArray) {
     var array = typeof objArray != 'object' ? JSON.parse(objArray) : objArray;
-    var str = 'UUID,Skill Exp,Username,Profile\n';
+    var str = 'UUID,Slayer Exp,Username,Profile\n';
 
     for (var i = 0; i < array.length; i++) {
         var line = '';
@@ -209,49 +206,8 @@ function ConvertToCSV(objArray) {
     return str;
 }
 
-function calcSkills(apiData) { // mining, foraging, farming, combat, fishing, taming
-    if (apiData.data.skills.apiEnabled != true) {
-        return '-';
-    }
-
-    var exp = 0;
-
-    try {
-        if (apiData.data.skills.mining.experience >= lv60) exp += lv60;
-        else exp += apiData.data.skills.mining.experience
-    } catch {
-        exp += 0;
-    }
-
-    try {
-        if (apiData.data.skills.foraging.experience >= lv50) exp += lv50;
-        else exp += apiData.data.skills.foraging.experience
-    } catch {
-        exp += 0;
-    }
-
-    try {
-        if (apiData.data.skills.farming.experience >= lv60) exp += lv60;
-        else exp += apiData.data.skills.farming.experience
-    } catch {
-        exp += 0;
-    }
-
-    try {
-        if (apiData.data.skills.combat.experience >= lv60) exp += lv60;
-        else exp += apiData.data.skills.combat.experience
-    } catch {
-        exp += 0;
-    }
-
-    try {
-        if (apiData.data.skills.fishing.experience >= lv50) exp += lv50;
-        else exp += apiData.data.skills.fishing.experience
-    } catch {
-        exp += 0;
-    }
-
-    return Math.floor(exp);
+function calcSlayer(apiData) {
+    return apiData.data.slayers.bosses.revenant.experience + apiData.data.slayers.bosses.tarantula.experience + apiData.data.slayers.bosses.sven.experience
 }
 
 function discordLog(client, embed) {

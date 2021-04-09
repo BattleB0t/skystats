@@ -8,7 +8,7 @@ module.exports = {
     name: 'help',
     aliases: ['h', 'info', `commands`],
     usage: 'help [command]',
-    description: 'Gets information about the bot',
+    description: 'Gets information about the bot or a specific command',
     execute(message, args) {
         if (!args.length) {
             delete require.cache[require.resolve('../../package.json')];
@@ -52,7 +52,6 @@ module.exports = {
             ].join('\n'), true)
 
             embed.addField('Stats', [
-                `Unique users: \`${message.client.users.cache.size.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}\``,
                 `Servers: \`${message.client.guilds.cache.size.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')}\``,
                 `Version: \`${package.version}\``,
                 `Uptime: \`${timeConversion(message.client.uptime)}\``,

@@ -9,7 +9,7 @@ module.exports = {
 	name: 'guildcheck',
 	aliases: ['gc', 'gcheck', 'guild'],
 	usage: 'guildcheck [ign] [profile]',
-	description: 'Tests if a player meets the requirements for a guild',
+	description: 'Tests if a player meets the requirements for the Skyblock Maniacs Guild',
 	maniacsOnly: true,
 	async execute(message, args) {
 		delete require.cache[require.resolve('../../config.json')];
@@ -23,9 +23,6 @@ module.exports = {
 			}
 			else var ign = args[0];
 		} // Gets IGN
-
-		var method = 'save';
-		if (args[1]) method = args[1];
 
 		ign = ign.replace(/\W/g, ''); // removes weird characters
 
@@ -48,12 +45,12 @@ module.exports = {
 		var scammer = await testScammer(ign);
 
 		// At this point we know its a valid IGN, but not if it has skyblock profiles
-		const apiData = await getApiData(ign, method); // Gets all skyblock player data from Senither's Hypixel API Facade
+		const apiData = await getApiData(ign); // Gets all skyblock player data from Senither's Hypixel API Facade
 
-		if (apiData.status == 404) {
+		if (apiData.status != 200) {
 			return message.channel.send(
 				new Discord.MessageEmbed()
-					.setDescription(`No Skyblock profile found for \`${ign}\``)
+					.setDescription(apiData.reason)
 					.setColor('DC143C')
 					.setTimestamp()
 			).then(message.reactions.removeAll().catch(error => console.error('Failed to clear reactions: ', error)))
@@ -117,8 +114,7 @@ module.exports = {
 async function getUUID(ign) {
 	const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${ign}`);
 	const result = await response.json();
-	const uuid = result.id;
-	return uuid.substr(0, 8) + "-" + uuid.substr(8, 4) + "-" + uuid.substr(12, 4) + "-" + uuid.substr(16, 4) + "-" + uuid.substr(20);
+	return result.id;
 }
 
 async function getApiData(ign, method) {
@@ -126,7 +122,7 @@ async function getApiData(ign, method) {
 	const config = require('../../config.json');
 
 	const UUID = await getUUID(ign);
-	const response = await fetch(`https://hypixel-api.senither.com/v1/profiles/${UUID}/${method}?key=${config.discord.apiKey}`);
+	const response = await fetch(`https://hypixel-api.senither.com/v1/profiles/${UUID}/weight?key=${config.discord.apiKey}`);
 	return await response.json();
 }
 
@@ -152,11 +148,9 @@ async function getScammerData() {
 }
 
 async function testScammer(ign) {
-	let uuidClean = await getUUID(ign);
-	uuidClean = uuidClean.replace(/-/g, "")
-
+	let uuid = await getUUID(ign);
 	scammerData = await getScammerData();
 
-	if (scammerData.hasOwnProperty(uuidClean)) return true;
+	if (scammerData.hasOwnProperty(uuid)) return true;
 	return false;
 }

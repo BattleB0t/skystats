@@ -12,7 +12,7 @@ module.exports = {
     name: 'playerskills',
     aliases: ['psk', 'playersk'],
     usage: 'playerskills [player] [profile]',
-    description: 'bottom text',
+    description: 'Gets the skill experience of a player using the maniacs method',
     guildOnly: true,
     maniacsOnly: true,
     async execute(message, args) {
@@ -49,23 +49,14 @@ module.exports = {
         // At this point we know its a valid IGN, but not if it has skyblock profiles
         const apiData = await getApiData(ign, method); // Gets all skyblock player data from Senither's Hypixel API Facade
 
-        if (apiData.status == 404) {
-            if (apiData.reason == 'Failed to find a profile using the given strategy') {
-                return message.channel.send(
-                    new Discord.MessageEmbed()
-                        .setDescription(`Profile \`${method}\` not found for \`${ign}\``)
-                        .setColor('DC143C')
-                        .setTimestamp()
-                ).then(message.reactions.removeAll().catch(error => console.error('Failed to clear reactions: ', error)))
-            } else {
-                return message.channel.send(
-                    new Discord.MessageEmbed()
-                        .setDescription(`No Skyblock profile found for \`${ign}\``)
-                        .setColor('DC143C')
-                        .setTimestamp()
-                ).then(message.reactions.removeAll().catch(error => console.error('Failed to clear reactions: ', error)))
-            }
-        }
+        if (apiData.status != 200) {
+			return message.channel.send(
+				new Discord.MessageEmbed()
+					.setDescription(apiData.reason)
+					.setColor('DC143C')
+					.setTimestamp()
+			).then(message.reactions.removeAll().catch(error => console.error('Failed to clear reactions: ', error)))
+		}
 
         // IGN is valid and player has skyblock profiles
 
@@ -88,10 +79,9 @@ module.exports = {
 };
 
 async function getUUID(ign) {
-    const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${ign}`);
-    const result = await response.json();
-    const uuid = result.id;
-    return uuid.substr(0, 8) + "-" + uuid.substr(8, 4) + "-" + uuid.substr(12, 4) + "-" + uuid.substr(16, 4) + "-" + uuid.substr(20);
+	const response = await fetch(`https://api.mojang.com/users/profiles/minecraft/${ign}`);
+	const result = await response.json();
+	return result.id;
 }
 
 async function getApiData(ign, method) {
